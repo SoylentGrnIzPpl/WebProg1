@@ -1,0 +1,45 @@
+<!-- <html>
+
+    <body>
+        <h1>Login</h1>
+        <p>Dont have an account? <a href="/register">Register Today!</a></p>
+        <form method="POST" action="/login">
+            <hr/>
+            <em>Username</em>
+            <br/>
+            <input type="text" name="username"/>
+            <hr/>
+            <em>Password</em>
+            <br/>
+            <input type="password" name="password"/>
+            <hr/>
+            <input type="submit" value="Login"/>
+        </form>
+    </body>
+
+</html> -->
+
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Login</h1>
+    <form action="" method="POST" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.username.label }}<br/>
+            {{ form.username(size=32) }}<br/>
+            {% for error in form.username.errors %}
+            <span style="color: red;">[{{error}}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password.label }}<br/>
+            {{ form.password(size=32) }}<br/>
+            {% for error in form.password.errors %}
+            <span style="color: red;">[{{error}}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}

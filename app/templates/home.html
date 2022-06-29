@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+    <h1>Home</h1>
+    <p>Hello, {{name}}</p>
+    <hr/>
+    <p>This is secret for logged in users</p>
+    <hr/>
+    <a href="/other">Other</a>
+    <a href="/logout">Logout</a>
+{% endblock %}
