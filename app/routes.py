@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, url_for, make_response, session, flash
-from app import app
+from app import app, db
 from app.forms import LoginForm
+from app.models import User
 
 
 
@@ -50,12 +51,18 @@ def get_login():
 @app.route("/login", methods=['POST'])
 def post_login():
     username = request.form.get("username", None)
+    password = request.form.get("password", None)
     # response = make_response(redirect(url_for('get_index')))
     # response.set_cookie("username", username)
-    if username != None:
+    if username != None and password != None:
+        user = User.query.filter_by(username=username).first()
+        if user is None or not user.check_password(password):
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
         session['username'] = username
         return redirect(url_for('get_index'))
     else:
+        flash('Username and Password fields must be filled.')
         return redirect(url_for('get_login'))
     # password = request.form.get("password", "<missing password>")
     # if password == "pass":
@@ -89,10 +96,11 @@ def post_register():
 
     if username != None and password != None:
         session['username'] = username
-        session['password'] = password
-        user = User(username, password)
-        db_session.add(user)
-        db_session.commit()
+        user = User(username = username)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Registration Successful!')
     else:
         return redirect(url_for('get_register'))
     return redirect(url_for('get_index'))
