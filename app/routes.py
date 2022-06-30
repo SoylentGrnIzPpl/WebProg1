@@ -54,7 +54,8 @@ def post_login():
     password = request.form.get("password", None)
     # response = make_response(redirect(url_for('get_index')))
     # response.set_cookie("username", username)
-    if username != None and password != None:
+    form = LoginForm()
+    if form.validate_on_submit():#username != None and password != None:
         user = User.query.filter_by(username=username).first()
         if user is None or not user.check_password(password):
             flash('Invalid username or password')
@@ -63,7 +64,7 @@ def post_login():
         return redirect(url_for('get_index'))
     else:
         flash('Username and Password fields must be filled.')
-        return redirect(url_for('get_login'))
+        return render_template('login.html', title='Login', form=form)
     # password = request.form.get("password", "<missing password>")
     # if password == "pass":
     #     return redirect(url_for('get_hi', name=username))
