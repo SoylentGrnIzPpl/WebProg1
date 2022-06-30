@@ -58,7 +58,7 @@ def post_login():
         user = User.query.filter_by(username=username).first()
         if user is None or not user.check_password(password):
             flash('Invalid username or password')
-            return redirect(url_for('login'))
+            return redirect(url_for('get_login'))
         session['username'] = username
         return redirect(url_for('get_index'))
     else:
@@ -92,16 +92,23 @@ def post_register():
     if(request.form.get("password", None) == request.form.get("repPassword", None)):
         password = request.form.get("password")
     else:
-        password = None
+        flash('Passwords did not match.')
+        return redirect(url_for('get_register'))
 
-    if username != None and password != None:
-        session['username'] = username
-        user = User(username = username)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-        flash('Registration Successful!')
+    if username != (None or '') and password != (None or ''):
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            session['username'] = username
+            user = User(username = username)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+            flash('Registration Successful!')
+        else:
+            flash('Username already taken.')
+            return redirect(url_for('get_register'))
     else:
+        flash('All fields must be filled.')
         return redirect(url_for('get_register'))
     return redirect(url_for('get_index'))
 
