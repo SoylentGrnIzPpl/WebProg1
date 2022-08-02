@@ -1,0 +1,220 @@
+<html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    </head>
+    <body onload="drawBoard()">
+        <h1>Connect 4!</h1>
+        <hr/>
+        <div id="connect4"></div>
+        </body>
+        <hr/>
+        <input type="button" onclick="getMove()" value="Computer Move">
+        <hr/>   
+        <span id="readyTurn" hidden = "true">Your turn!</span><span id="waitingTurn" hidden="true">Opponents turn...</span>
+        <br/>
+        <input id="playerMove" type="button" onclick="makeMove()" value="Player Move"> X:<span id="xVal"></span>
+        <br/>
+        <input id="X" type="range" min="0" max="6" value="0" onchange="updateXVal()">
+        <hr/>
+        <input type="button" onclick="restart()" value="Restart Game"/>
+        
+    </body>
+
+
+    <script>
+
+        var player = {{player}};
+        var board = createGame();
+        if(player == 2){
+            // document.getElementById('waitingTurn').hidden = false;
+            // document.getElementById('readyTurn').hidden = true;
+            //document.getElementById('playerMove').disabled = true;
+            waitMove();
+        }
+        
+        
+        
+        function setup() {
+            let myCanvas = createCanvas(700, 600);
+            myCanvas.parent("connect4");
+        }
+
+        function drawBoard() {
+            //rect(0,0,900,800);
+
+            line(0, 0, 0, 600);
+            line(100, 0, 100, 600 );
+            line(200, 0, 200, 600 );
+            line(300, 0, 300, 600 );
+            line(400, 0, 400, 600 );
+            line(500, 0, 500, 600 );
+            line(600, 0, 600, 600 );
+            line(700, 0, 700, 600 );
+            // line(800, 100, 800, 700 );
+            
+            line(0, 0, 700, 0);
+            line(0, 100, 700, 100 );
+            line(0, 200, 700, 200 );
+            line(0, 300, 700, 300 );
+            line(0, 400, 700, 400 );
+            line(0, 500, 700, 500 );
+            line(0, 600, 700, 600 );
+            //line(100, 700, 800, 700 );
+        }
+
+        function drawCircle(x, y) {
+            x = ((x) * 100) + 50;
+            y = (y * 100) + 50;
+            fill(color("red"))
+            circle(x, y, 20);
+        }
+
+        function playerCircle() {
+            var x = parseInt(document.getElementById("X").value);
+            for(var i = 6; i >= 0; --i){
+                if(board[x][i] == false){
+                    board[x][i] = true;
+                    x = ((x + 1) * 100) + 50;
+                    i = (i * 100) + 150;
+                    fill(color("blue"));
+                    circle(x, i, 20);
+                    i = -1;
+                }
+            }
+        }
+
+        function makeMove() {
+            var x = parseInt(document.getElementById("X").value);
+            var y = -1;
+            for(var i = 6; i >= 0; --i){
+                if(board[x][i] == false){
+                    board[x][i] = true;
+                    fill(color("blue"));
+                    circle((((x) * 100) + 50), ((i * 100) + 50), 20);
+                    y = i;
+                    i = -1;
+                }
+            }
+            if(y == -1){
+                return;
+            }
+            var coordinate = String(x + "-" + y);
+            const obj = {
+                coordinate:coordinate,
+                player:player
+            }
+            xhttp = new XMLHttpRequest();
+            // xhttp.onreadystatechange = function() {
+
+            // };
+            xhttp.open("POST", "/makeMove", true);  //+ x + '-' + y
+            xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xhttp.send(JSON.stringify(obj));
+            document.getElementById("playerMove").disabled = true;
+            document.getElementById("waitingTurn").hidden = false;
+            waitMove();
+        }
+
+        function getMove() {
+            xhttp = new XMLHttpRequest();
+            xhttp.onload = function() {
+                // What to do when the response is ready                responseText = ;
+                data = JSON.parse(xhttp.responseText);
+                console.log(data);
+                for (i in data.data) {
+                    move = -1;
+                    item = data.data[i];
+                    item.x;
+                    for(var i = 6; i >= 0; --i){
+                        if(board[item.x][i] == false){
+                            board[item.x][i] = true;
+                            move = i;
+                            i = -1;
+                        }
+                    }
+                    if (move != -1){
+                        drawCircle(item.x, move);
+                    }
+                    else{
+                        for(var i = 0; i < 7; ++i){
+                            if(board[i][0] == false){
+                                getMove();
+                                i = 10;
+                            }
+                        }
+                    }
+
+
+                }
+            }       
+            xhttp.open("GET", "/getMove");
+            xhttp.send();
+            console.log("waiting for response from ajax call");
+        }
+
+        function waitMove() {
+            document.getElementById("playerMove").disabled = true;
+            document.getElementById("waitingTurn").hidden = false;
+            document.getElementById("readyTurn").hidden = true;
+            $.ajax({
+                type:'get',
+                url: "/waitMove",
+                //dataType: 'json',
+                success:function(data){
+                    // data = JSON.parse(data);
+                    console.log(data);
+                    let info = data.split('-');
+                    console.log(info);
+                    if(info[0] == player && info[1] != 9){
+                        document.getElementById("playerMove").disabled = false;
+                        document.getElementById("waitingTurn").hidden = true;
+                        document.getElementById("readyTurn").hidden = false;
+        
+                        if(board[int(info[1])][int(info[2])] == 0){
+                            drawCircle(int(info[1]),int(info[2]));
+                            board[int(info[1])][int(info[2])] = 1;
+                        }
+                    }
+                    setTimeout(function(){
+                        waitMove();
+                    }, 10000);
+                }
+            });
+
+        }
+        
+        function updateXVal(){
+            
+            document.getElementById("xVal").innerHTML = document.getElementById("X").value
+        }
+
+        function restart(){
+            fill(color("white"));
+            clear();
+            drawBoard();
+            delete board;
+            board = createGame();
+        }
+
+        function createGame(){
+            // xhttp = new XMLHttpRequest();
+            // xhttp.onload = function() {
+                var col0 = new Array(6).fill(false);
+                var col1 = new Array(6).fill(false);
+                var col2 = new Array(6).fill(false);
+                var col3 = new Array(6).fill(false);
+                var col4 = new Array(6).fill(false);
+                var col5 = new Array(6).fill(false);
+                var col6 = new Array(6).fill(false);
+                var board = [col0, col1, col2, col3, col4, col5, col6];
+                return board;
+            // }
+            // xhttp.open("GET", "/createGame");
+            // xhttp.send();
+            // console.log("waiting for response from ajax call");
+
+        }
+
+    </script>
+</html>
