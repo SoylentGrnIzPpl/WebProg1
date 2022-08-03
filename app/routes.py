@@ -154,10 +154,6 @@ def createGame(player):
     game_list = game_db.game_list
     game_list.update_one({'game':1}, {'$set':{str('p'+player):1}}) 
     game = game_list.find_one({'game':1})
-
-    if player == 3:
-        game_list.update_one({'game':1}, {'$set':{"restart":0}}) 
-        return None
     
     if game['p1'] == 1 and game['p2'] == 1 :
         game_list.delete_one({'game':1})
