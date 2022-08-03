@@ -154,6 +154,7 @@ def createGame(player):
     game_list = game_db.game_list
     game_list.update_one({'game':1}, {'$set':{str('p'+player):1}}) 
     game = json.dumps(game_list.find_one({'game':1}))
+    game = json.parse(game)
     
     if game['p1'] == 1 and game['p2'] == 1 :
         game_list.delete_one({'game':1})

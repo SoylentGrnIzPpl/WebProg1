@@ -8,30 +8,32 @@ shopping_list.delete_many({})
 
 game_db = client.game_db
 game_list = game_db.game_list
-# game_list.delete_many({})
+game_list.delete_many({})
 
-# game_list.insert_one({
-#     "game":1, 
-#     "p1":0,
-#     "p2":0,
-#     "turn":1,
-#     "time": datetime.datetime.now(),
-#     "lastMove": "none",
+game_list.insert_one({
+    "game":1, 
+    "p1":0,
+    "p2":0,
+    "turn":1,
+    "time": datetime.datetime.now(),
+    "lastMove": 9,
+    "restart":0,
 
-#     "col0":[0,0,0,0,0,0],
-#     "col1":[0,0,0,0,0,0],
-#     "col2":[0,0,0,0,0,0],
-#     "col3":[0,0,0,0,0,0],
-#     "col4":[0,0,0,0,0,0],
-#     "col5":[0,0,0,0,0,0],
-#     "col6":[0,0,0,0,0,0],
+    "col0":[0,0,0,0,0,0],
+    "col1":[0,0,0,0,0,0],
+    "col2":[0,0,0,0,0,0],
+    "col3":[0,0,0,0,0,0],
+    "col4":[0,0,0,0,0,0],
+    "col5":[0,0,0,0,0,0],
+    "col6":[0,0,0,0,0,0],
 
-#     })
 
-# game = game_list.find_one({'game':1})
-# print(game['time'])
-# if game['p1'] == 0:
-#     print(game['p1'])
+})
+
+game = game_list.find_one({'game':1})
+print(game['time'])
+if game['p1'] == 0:
+    print(game['p1'])
 
 # game_list.update_one({'game':1}, {'$set':{'turn':3}})
 # game_list.update_one({'game':1}, {'$set':{'col0.0':3}})
