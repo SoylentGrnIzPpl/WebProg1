@@ -24,13 +24,18 @@
 
     <script>
 
-        var player = {{player}};
+        var player = Number({{player}});
         var board = createGame();
+        document.getElementById('waitingTurn').hidden = false;
+        document.getElementById('readyTurn').hidden = true;
+        document.getElementById('playerMove').disabled = true;
+        updateXVal();
+        waitMove();
         if(player == 2){
             // document.getElementById('waitingTurn').hidden = false;
             // document.getElementById('readyTurn').hidden = true;
-            //document.getElementById('playerMove').disabled = true;
-            waitMove();
+            // document.getElementById('playerMove').disabled = true;
+            // waitMove();
         }
         
         
@@ -113,7 +118,8 @@
             xhttp.send(JSON.stringify(obj));
             document.getElementById("playerMove").disabled = true;
             document.getElementById("waitingTurn").hidden = false;
-            waitMove();
+            document.getElementById("readyTurn").hidden = true;
+            // waitMove();
         }
 
         function getMove() {
@@ -154,31 +160,49 @@
         }
 
         function waitMove() {
-            document.getElementById("playerMove").disabled = true;
-            document.getElementById("waitingTurn").hidden = false;
-            document.getElementById("readyTurn").hidden = true;
+            // document.getElementById("playerMove").disabled = true;
+            // document.getElementById("waitingTurn").hidden = false;
+            // document.getElementById("readyTurn").hidden = true;
             $.ajax({
                 type:'get',
                 url: "/waitMove",
                 //dataType: 'json',
                 success:function(data){
                     // data = JSON.parse(data);
+                    //console.log(data);
+                    //let info = data.split('-');
+                    //console.log(info);
+                    info = JSON.parse(data);
                     console.log(data);
-                    let info = data.split('-');
-                    console.log(info);
-                    if(info[0] == player && info[1] != 9){
+                    if(info.lastMove == 9){
+
+                        fill(color("white"));
+                        clear();
+                        drawBoard();
+                        delete board;
+                        board = createGame(); 
+                        console.log("wiping board")
+
+                    }
+                    if(info.turn == player && info.restart < 1){
                         document.getElementById("playerMove").disabled = false;
                         document.getElementById("waitingTurn").hidden = true;
                         document.getElementById("readyTurn").hidden = false;
         
-                        if(board[int(info[1])][int(info[2])] == 0){
-                            drawCircle(int(info[1]),int(info[2]));
-                            board[int(info[1])][int(info[2])] = 1;
+                        if(info.lastMove[0] != 9 && board[int(info.lastMove[0])][int(info.lastMove[2])] == 0){
+                            drawCircle(int(info.lastMove[0]),int(info.lastMove[2]));
+                            board[int(info.lastMove[0])][int(info.lastMove[2])] = 1;
                         }
+                    }
+                    else{
+                        document.getElementById("playerMove").disabled = true;
+                        document.getElementById("waitingTurn").hidden = false;
+                        document.getElementById("readyTurn").hidden = true;
+                        
                     }
                     setTimeout(function(){
                         waitMove();
-                    }, 10000);
+                    }, 5000);
                 }
             });
 
@@ -190,16 +214,30 @@
         }
 
         function restart(){
-            fill(color("white"));
-            clear();
-            drawBoard();
-            delete board;
-            board = createGame();
+            document.getElementById('playerMove').disabled = true;
+            xhttp = new XMLHttpRequest();
+            xhttp.onload = function(){
+                data = JSON.parse(xhttp.responseText);//
+                console.log(data.restart);
+                if(data.restart == 1){
+                   fill(color("white"));
+                    clear();
+                    drawBoard();
+                    delete board;
+                    board = createGame(); 
+                    console.log("restarting game");
+                }
+            }
+            xhttp.open('GET', "/createGame/" + str(player));
+            xhttp.send();
+            
+            
         }
 
         function createGame(){
             // xhttp = new XMLHttpRequest();
             // xhttp.onload = function() {
+                
                 var col0 = new Array(6).fill(false);
                 var col1 = new Array(6).fill(false);
                 var col2 = new Array(6).fill(false);

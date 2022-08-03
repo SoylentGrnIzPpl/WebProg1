@@ -10,117 +10,6 @@ import json
 from mongita import MongitaClientDisk
 db_server = MongitaClientDisk(host="./.mongita")
 
-
-"""
-@app.route("/")
-@app.route("/home")
-def get_index():
-    # username = request.cookies.get("username", None)
-    if 'username' in session:
-        username = session['username']
-    else: 
-        return redirect(url_for("get_login"))
-    return render_template('home.html', name=username)
-
-@app.route("/other")
-def get_other():
-    # username = request.cookies.get("username", None)
-    if 'username' in session:
-        username = session['username']
-    else:
-        return redirect(url_for("get_login"))
-    return render_template('other.html', name = username)
-
-# @app.route("/hello")
-# def get_hello():
-#     return render_template('hello.html', name="Santa")
-
-# @app.route("/hi")
-# @app.route("/hi/<name>")
-# def get_hi(name="Dick"):
-#     name = name[::-1]
-#     return render_template('hello.html', name=name)
-
-@app.route("/login", methods=['GET'])
-def get_login():
-    # username = request.cookies.get("username", None)
-    if 'username' in session:
-        return redirect(url_for("get_index"))
-    
-    form = LoginForm()
-    if form.validate_on_submit():
-        flash('Login request for {}, remember_me={}'.format(
-            form.username.data, form.remember_me.data
-        ))
-        return redirect(url_for('get_index'))
-    return render_template('login.html', title='Login', form=form)
-
-@app.route("/login", methods=['POST'])
-def post_login():
-    username = request.form.get("username", None)
-    password = request.form.get("password", None)
-    # response = make_response(redirect(url_for('get_index')))
-    # response.set_cookie("username", username)
-    form = LoginForm()
-    if form.validate_on_submit():#username != None and password != None:
-        user = User.query.filter_by(username=username).first()
-        if user is None or not user.check_password(password):
-            flash('Invalid username or password')
-            return redirect(url_for('get_login'))
-        session['username'] = username
-        return redirect(url_for('get_index'))
-    else:
-        flash('Username and Password fields must be filled.')
-        return render_template('login.html', title='Login', form=form)
-    # password = request.form.get("password", "<missing password>")
-    # if password == "pass":
-    #     return redirect(url_for('get_hi', name=username))
-    # else:
-    # return response
-
-@app.route("/logout", methods=['GET'])
-def get_logout():
-    # response = make_response(redirect(url_for('get_login')))
-    # response.delete_cookie("username")
-    session.pop('username')
-    return redirect(url_for('get_login'))
-    # return response
-
-@app.route("/register", methods=['GET'])
-def get_register():
-    if 'username' in session:
-        return redirect(url_for("get_index"))
-    return render_template('register.html')
-
-@app.route("/register", methods=['POST'])
-def post_register():
-
-    username = request.form.get("username", None)
-
-    if(request.form.get("password", None) == request.form.get("repPassword", None)):
-        password = request.form.get("password")
-    else:
-        flash('Passwords did not match.')
-        return redirect(url_for('get_register'))
-
-    if username != (None or '') and password != (None or ''):
-        user = User.query.filter_by(username=username).first()
-        if user is None:
-            session['username'] = username
-            user = User(username = username)
-            user.set_password(password)
-            db.session.add(user)
-            db.session.commit()
-            flash('Registration Successful!')
-        else:
-            flash('Username already taken.')
-            return redirect(url_for('get_register'))
-    else:
-        flash('All fields must be filled.')
-        return redirect(url_for('get_register'))
-    return redirect(url_for('get_index'))
-"""
-
 @app.route('/')
 def get_list():
     shopping_db = db_server.shopping_db
@@ -255,31 +144,41 @@ def waitMove():
     game = game_list.find_one({'game':1})
     turn = game['turn']
     lastMove = game['lastMove']
-    return str(turn) + '-' + str(lastMove)
+    restart = game['p1'] + game['p2']
+    return json.dumps({"turn":turn, "lastMove":str(lastMove), "restart":restart})#str(turn) + '-' + str(lastMove)
 
 
-@app.route('/createGame', methods=['GET'])
-def createGame():
+@app.route('/createGame/<player>', methods=['GET'])
+def createGame(player):
     game_db = db_server.game_db
     game_list = game_db.game_list
+    game_list.update_one({'game':1}, {'$set':{str('p'+player):1}}) 
+    game = game_list.find_one({'game':1})
+
+    if player == 3:
+        game_list.update_one({'game':1}, {'$set':{"restart":0}}) 
+        return None
     
-    game_list.delete_one({'game':1})
-    game_list.insert_one({
-    "game":1, 
-    "p1":0,
-    "p2":0,
-    "turn":1,
-    "time": datetime.datetime.now(),
-    "lastMove": 9,
+    if game['p1'] == 1 and game['p2'] == 1 :
+        game_list.delete_one({'game':1})
+        game_list.insert_one({
+            "game":1, 
+            "p1":0,
+            "p2":0,
+            "turn":1,
+            "time": datetime.datetime.now(),
+            "lastMove": 9,
+            "restart":0,
 
-    "col0":[0,0,0,0,0,0],
-    "col1":[0,0,0,0,0,0],
-    "col2":[0,0,0,0,0,0],
-    "col3":[0,0,0,0,0,0],
-    "col4":[0,0,0,0,0,0],
-    "col5":[0,0,0,0,0,0],
-    "col6":[0,0,0,0,0,0],
+            "col0":[0,0,0,0,0,0],
+            "col1":[0,0,0,0,0,0],
+            "col2":[0,0,0,0,0,0],
+            "col3":[0,0,0,0,0,0],
+            "col4":[0,0,0,0,0,0],
+            "col5":[0,0,0,0,0,0],
+            "col6":[0,0,0,0,0,0],
 
-    })
-
-    return "success"
+        })
+        return json.dumps({"restart":1})
+    else:
+        return json.dumps({"restart":0})
