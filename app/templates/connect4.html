@@ -217,7 +217,7 @@
             document.getElementById('playerMove').disabled = true;
             xhttp = new XMLHttpRequest();
             xhttp.onload = function(){
-                data = JSON.parse(xhttp.responseText);//
+                data = JSON.parse(xhttp.responseXML);//
                 console.log(data.restart);
                 if(data.restart == 1){
                    fill(color("white"));
